@@ -1,0 +1,280 @@
+<!DOCTYPE = html>
+<html lang = 'en'>
+    <head>
+        <meta charset='utf-8'>
+        <link rel="stylesheet" href='style.css'>
+        <Title>Odin Calculator</Title>
+    </head>
+
+    <body>
+        <div id='container'>
+            <div id='screen'>Welcome!</div>
+            <button id='button1' class='button147 buttonNum' data-value='1'>1</button>
+            <button id='button2' class='button258 buttonNum' data-value='2'>2</button>
+            <button id='button3' class='button369 buttonNum' data-value='3'>3</button>
+            <button id='buttonPlus' class='buttonColumn4 buttonOperator' data-symbol='+'>+</button>
+            <button id='button4' class='button147 buttonNum' data-value='4'>4</button>
+            <button id='button5' class='button258 buttonNum' data-value='5'>5</button>
+            <button id='button6' class='button369 buttonNum' data-value='6'>6</button>
+            <button id='buttonMinus' class='buttonColumn4 buttonOperator' data-symbol='-'>-</button>
+            <button id='button7' class='button147 buttonNum' data-value='7'>7</button>
+            <button id='button8' class='button258 buttonNum' data-value='8'>8</button>
+            <button id='button9' class='button369 buttonNum' data-value='9'>9</button>
+            <button id='buttonMultiply' class='buttonColumn4 buttonOperator' data-symbol='*'>*</button>
+            <button id='buttonEquals' class='button147' data-operator=''>=</button>
+            <button id='buttonDecimal' class='button258'>.</button>
+            <button id='button0' class='buttonNum' data-value='0'>0</button>
+            <button id='buttonDivide' class='buttonColumn4 buttonOperator' data-symbol='/'>/</button>  
+        </div>
+        <script>
+            let incompleteNum = [];
+            let stagedNums = [];
+            //const operators = ['+','-','*','/']
+
+            const buttonsNum = document.querySelectorAll('.buttonNum');
+            buttonsNum.forEach(button => button.addEventListener('click', stageNum));
+            
+            const buttonsOperator = document.querySelectorAll('.buttonOperator');
+            buttonsOperator.forEach(button => button.addEventListener('click', stageOperator));
+
+            document.querySelector('#buttonEquals').addEventListener('click', stageEquals);
+            document.querySelector('#buttonDecimal').addEventListener('click', stageDecimal);
+
+            function getSum(stagedNums) {
+                
+                return stagedNums.reduce((total, num) => (total += num), 0);
+            };
+            
+            function getDifference(stagedNums) {
+                
+                let total = stagedNums[0];
+
+                stagedNums.forEach((num, index) => {
+                    if (index > 0) {
+                        total -= num;
+                    }
+                });
+
+                return total;
+            };
+
+            function getProduct(stagedNums) {
+
+                return stagedNums.reduce((total, num) => (total * num), 1)
+            };
+
+            function clearAllData() {
+                console.log('clearAllData()')
+                
+                incompleteNum = [];
+                stagedNums = [];
+
+                document.querySelector('#buttonEquals').setAttribute('data-operator', '');
+            }
+
+            function stageEquals() {
+                console.log('stageEquals() stagedNums: ', stagedNums, 'incompleteNum: ', incompleteNum);
+                if (incompleteNum.length > 0) {
+                    stagedNums.push(Number(incompleteNum.join('')));
+                    console.log('stageEquals(0 stagedNums#2: ', stagedNums);
+                };
+
+                incompleteNum.length = 0; // reset
+
+                console.log('proceesOut() from stageEquals()');
+                processOutput(this.getAttribute('data-operator'), 'stageEquals');
+            };
+
+            function stageNum() {
+                console.log('stageNum()');
+                
+                const num = Number(this.getAttribute('data-value'));
+
+                // if ((incompleteNum.length == 0) && (num == 0)) {
+                //     drawScreen(num, 'stageNum');
+                // }
+
+                incompleteNum.push(num);
+
+                console.log('drawScreen() from stageNum()');
+                drawScreen(num, 'stageNum');
+            };
+
+            function stageOperator() {
+                console.log('stageOperator()');
+
+                const buttonEquals = document.querySelector('#buttonEquals');
+                
+                if (incompleteNum.length > 0) { // stagerOperator() is how digits in incompleteNum are converted into the first item in stagedNums array to be, later, the first value in expression to be evaluated
+                    console.log('stageOp() incompleteNum: ', incompleteNum);
+                    stagedNums.push(Number(incompleteNum.join('')));
+                    incompleteNum.length = 0;
+                };
+
+                let operator = this.getAttribute('data-symbol');
+                
+                if ((buttonEquals.getAttribute('data-operator') != '') && (buttonEquals.getAttribute('data-operator') == operator)) { // for inputs like "2 + 2 + 2", process first expression (2 + 2) and then next expression (4 + 2); if data-operator has a value then this must be the case
+                    console.log('proceesOut() from stageOperator()');
+                    processOutput(operator, 'stageOperator');
+
+                } else if (buttonEquals.getAttribute('data-operator') != '') {
+                    console.log('proceesOut() from stageOperator()');
+                    processOutput(buttonEquals.getAttribute('data-operator'), 'stageOperator');
+                }; 
+
+                buttonEquals.setAttribute('data-operator', operator);
+
+                console.log('drawScreen() from stagerOperator()');
+                drawScreen(operator, 'stageOperator');
+            };
+
+            function stageDecimal() {
+                console.log('stageDecimal()');
+
+                let num = '';
+
+                // if (incompleteNum[incompleteNum.length-1] == '.') { // user erroneously put in decimal before any digits or possibly after operator
+                //     return;
+                // } else   --- i don't understand what this was for? if user puts in a decimal on a blank screen it should return 0.# -- should not ignore input
+                if (incompleteNum.length == 0) {
+                    num = '0.'; // exists for drawScreen()
+                    incompleteNum.push('0', '.');
+                } else {
+                    num = '.'
+                    incompleteNum.push(num);
+
+                    // const numArray = ...stagedNums[stagedNums.length-1]; // get last number of expression and spread into array to find # of leading zeros
+                    // let leadingZeroCount = 0 
+                    
+                    // for (digit of numArray) {
+                    //     if (digit == 0) {
+                    //         leadingZeroCount += 1;
+                    //     } else {
+                    //         break;
+                    //     };
+                    // };     
+                };
+
+                drawScreen(num, 'stageDecimal');
+            };
+
+            function drawScreen(char, func) {
+                const screen = document.querySelector('#screen');
+                let text = screen.innerText;
+
+                const operator = document.querySelector('#buttonEquals').getAttribute('data-operator')
+
+                console.log(`drawScreen() char: ${char} stagedNums: ${stagedNums} incompleteNum: ${incompleteNum} operator: ${operator} Old-text: ${text}`)
+
+                if (func == 'stageNum') {
+                    if ((text == 'Welcome!') || (text == 'Invalid!') || (text == NaN) || (text == '')) {
+                        console.log('p0 1');
+                        text = char;
+
+                    } else if (text.charAt(text.length-1) == document.querySelector('#buttonEquals').getAttribute('data-operator')) { // is previous input an operator? add a space before appending next input
+                        console.log('p0 2');
+                        text += ` ${char}`;
+
+                    } else if ((incompleteNum.length == 1) && (stagedNums.some(item => text.includes(item)))) { // is there already a result on the screen?
+                        console.log('p0 3');
+                        if (operator) { // if there is an operator, user is adding an expression to evaluate against the result of the previous expression -- input looks like "+ 2"
+                            text += ` ${operator} ${char}`;
+
+                        } else { // if there is no operator, user put in a digit immediately after evaluating an expression rather than using an operator button first, so reset stagedNums to start fresh
+                            text = char;
+
+                            stagedNums.length = 0; // reset
+                        };
+                    } else if (Number(incompleteNum[0] > 0)) { // here // make sure user did not put in several zeros followed by a digit -- incompleteNum[0] necessarily contains a valid input at this point, so slice it off before checking if it's > 0
+                        console.log('p0 5');
+                        text += char; // user is adding digits to an incomplete number
+
+                    } else if ((Number(incompleteNum[0] == 0)) && (incompleteNum.length == 2) && (incompleteNum[1] == 0)) { // user put in a zero followed by a zero -- erase zeros
+                        //console.log('p0 6', Number(incompleteNum[0]), 'incompleteNum: ', incompleteNum);
+                        text = char;
+
+                        incompleteNum = [char];
+
+                    } else if ((Number(incompleteNum[0] == 0)) && (incompleteNum.length == 2) && (incompleteNum[1] > 0)) { // user put in several zeros followed by a non-zero digit -- erase zero
+                        console.log('p0 7', Number(incompleteNum), 'incompleteNum: ', incompleteNum);
+                        text = char;
+
+                        incompleteNum = incompleteNum.slice(1);
+                        console.log('p0 7#2 incompleteNum: ', incompleteNum);
+
+                    } else { // if no exceptions, hopefully its okay to append char to end
+                        text += char;
+                    };
+
+                } else if (func == 'stageOperator') {
+                    if ((text == 'Welcome!') || (text == 'Invalid!') || (text == NaN) || (text == '') || !(Number.isInteger(Number(text.charAt(text.length-1))))) { // last condition catches erroneous user input, i.e., putting in an operator before any numbers
+                        clearAllData();
+
+                    } else {
+                        text += ` ${char}`;
+                    };
+
+                } else if (func == 'stageDecimal') {
+                    if ((text == 'Welcome!') || (text == 'Invalid!') || (text == NaN) || (text == '')) {
+                        text = char;
+
+                    } else if (text[text.length-1] == document.querySelector('#buttonEquals').getAttribute('data-operator')) { // is previous input an operator? add a space before appending a decimal next input
+                        text += ` ${char}`;
+
+                    } else if (text[text.length-1] == '.') { // is previous input a decimal? then do nothing
+                        return;
+
+                    } else if ((stagedNums.length > 0) && (!operator)) { // user put in a digit(? i mean a decimal?) immediately after evaluating an expression so reset to start fresh
+                        text = char;
+
+                        stagedNums.length = 0; // stagedNums contained the result of previous expression so clear it
+
+                    } else if ((incompleteNum.reduce(function(total, char){ if (char == '.') { // user put in a decimal despite existing decimal in incompleteNum so prevent 2 decimals from appearing
+                        total += 1; // counting the decimals with reduce array method
+
+                        } return total;},0)) > 1) { // is decimal count > 1?
+                            incompleteNum = incompleteNum.splice((incompleteNum.length - 1), 1) // removal extra decimal from staging area (incompletNum)
+
+                    } else { // if no exceptions then input must be valid, append normally
+                        text += char;
+                    };
+
+                } else if (func == 'processOutput') {
+                    text = char;
+                };
+
+                screen.innerText = text;
+            };
+
+            function processOutput(operator, func) {
+
+                incompleteNum.length = 0; // reset staging area for digits
+
+                console.log('processOutput() operator: ', operator, 'stagedNums: ', stagedNums);
+
+                let result = null;
+                if (operator == '+') {
+                    result = getSum(stagedNums);
+                } else if (operator == '-') {
+                    result = getDifference(stagedNums);
+                } else if (operator == '*') {
+                    result = getProduct(stagedNums);
+                } else if (operator == '/') {
+                    //result = getQuotient(stagedNums)
+                } else if ((operator === '') && (stagedNums.length == 1)) { // user put in digits followed by '='
+                    result = stagedNums[0];
+                };
+
+                console.log('result: ', result);
+                console.log('drawScreen() from processOut()');
+                drawScreen(result, 'processOutput');
+
+                console.log('processOut() clearing data');
+                if (func != 'stageOperator') { // if stageOperator() calls processOutput() to evaluate the first pair of numbers in, e.g., (2 + 2 - 2), don't reset the operator property in #buttonEquals
+                    document.querySelector('#buttonEquals').setAttribute('data-operator', ''); // reset operator; processOutput() must have been called by stageEquals() and should be blanked to wait for new operator from user input
+                };
+                stagedNums = [result]; // reset, add result from previous expression into first item in array of next expression to be evaluated
+            };
+        </script>
+    </body>
+</html>
